@@ -27,7 +27,7 @@ case $1 in
         make -C ./hm_gameserver
         make -C ./hm_lobbyserver
         cd ./hm_stud && make && rm -rf cert/test* && cd cert && sh gen_cert.sh && cd ../..
-        cd ./hm_nginx && ./configure && make && sudo make install
+        cd ./hm_nginx && sed "s@\/usr\/local\/web@$(pwd)/../hm_web/@" conf/hm_nginx.conf > conf/nginx.conf && ./configure && make && sudo make install
         ;;
     start)
         mkdir -p ./hm_log
@@ -41,7 +41,11 @@ case $1 in
         ./hm_stud/stud ./hm_stud/cert/test.com.pem
         ;;
     stop)
-        ps -ef | grep hm_ | grep -v grep | awk '{print $2}' | xargs kill -9
+        ps -ef | grep hm_web | grep -v grep | awk '{print $2}' | xargs kill -9
+        ps -ef | grep hm_gameserver | grep -v grep | awk '{print $2}' | xargs kill -9
+        ps -ef | grep hm_lobbyserver | grep -v grep | awk '{print $2}' | xargs kill -9
+        ps -ef | grep hm_stud | grep -v grep | awk '{print $2}' | xargs kill -9
+        ps -ef | grep nginx | grep -v grep | awk '{print $2}' | xargs sudo kill -9
         ;;
     *)
         echo "Usage: ctl.sh {clone|bucket_create|bucket_restore|compile|start|stop|clone}" >&2
