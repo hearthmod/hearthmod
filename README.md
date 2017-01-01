@@ -25,3 +25,13 @@ Start hearthmod:
 ```sh
 bash host_ctl.sh start
 ```
+# Components
+[hm_lobbyserver](https://github.com/farb3yonddriv3n/hm_lobbyserver) - hearthmod lobby server
+[hm_gameserver](https://github.com/farb3yonddriv3n/hm_gameserver) - hearthmod game server
+[hm_base](https://github.com/farb3yonddriv3n/hm_base) - hearthmod base library
+[hm_client](https://github.com/farb3yonddriv3n/hm_client) - hearthmod client
+[hm_database](https://github.com/farb3yonddriv3n/hm_database) - hearthmod latest database snapshot
+[hm_sunwell](https://github.com/farb3yonddriv3n/hm_sunwell) - hearthsim custom card generation
+[hm_stud](https://github.com/farb3yonddriv3n/hm_stud) - stud
+[hm_nginx](https://github.com/farb3yonddriv3n/hm_nginx) - nginx web server
+[hm_web](https://github.com/farb3yonddriv3n/hm_web) - hearthmod web interface
