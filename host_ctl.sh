@@ -2,7 +2,7 @@
 
 case $1 in
     clone)
-        repos=( base database base gameserver lobbyserver stud )
+        repos=( base database base gameserver lobbyserver stud nginx web sunwell )
         for i in ${repos[@]}; do
             git clone https://github.com/farb3yonddriv3n/hm_$i.git
         done
@@ -26,11 +26,19 @@ case $1 in
     compile)
         make -C ./hm_gameserver
         make -C ./hm_lobbyserver
+        cd ./hm_stud && make && rm -rf cert/test* && cd cert && sh gen_cert.sh && cd ../..
+        cd ./hm_nginx && ./configure && make && sudo make install
         ;;
     start)
         mkdir -p ./hm_log
         valgrind --log-file=./hm_log/hm_gameserver_valgrind_$(date +%s) --trace-children=yes ./hm_gameserver/hm_gameserver --log=./hm_log/hm_gameserver_$(date +%s)
         valgrind --log-file=./hm_log/hm_lobbyserver_valgrind_$(date +%s) --trace-children=yes ./hm_lobbyserver/hm_lobbyserver --log=./hm_log/hm_lobbyserver_$(date +%s)
+        # fcgi
+        spawn-fcgi -d `pwd`/../hm_web/ -f `pwd`/../hm_web/app.py -a 127.0.0.1 -p 9002
+        # nginx
+        sudo nginx
+        # stud
+        ./hm_stud/stud ./hm_stud/cert/test.com.pem
         ;;
     stop)
         ps -ef | grep hm_ | grep -v grep | awk '{print $2}' | xargs kill -9
