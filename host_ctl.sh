@@ -2,7 +2,7 @@
 
 case $1 in
     clone)
-        repos=( base database base gameserver lobbyserver stud nginx web sunwell )
+        repos=( base database base gameserver lobbyserver stud nginx web sunwell client )
         for i in ${repos[@]}; do
             git clone https://github.com/farb3yonddriv3n/hm_$i.git
         done
