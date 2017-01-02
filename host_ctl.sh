@@ -77,7 +77,8 @@ case $1 in
     compile)
         if [ "$#" -eq 2 ]; then
             cd ./hm_stud && make && rm -rf cert/test* && cd cert && sh gen_cert.sh && cd ../..
-            cd ./hm_nginx && sed "s@\/usr\/local\/web@$(pwd)/../hm_web/@" conf/hm_nginx.conf > conf/nginx.conf && ./configure && make && sudo make install
+            sudo rm -rf /usr/local/nginx/
+            cd ./hm_nginx && sed "s@\/usr\/local\/web@$(pwd)/../hm_web/@" conf/hm_nginx.conf > conf/nginx.conf && ./configure && make && sudo make install && cd ../..
         fi
         make -C ./hm_gameserver
         make -C ./hm_lobbyserver
