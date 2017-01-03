@@ -8,7 +8,7 @@ start() {
     # fcgi
     spawn-fcgi -d `pwd`/./hm_web/ -f `pwd`/./hm_web/app.py -a 127.0.0.1 -p 9002
     # nginx
-    sudo nginx
+    sudo ./hm_nginx/objs/nginx
     # stud
     ./hm_stud/stud ./hm_stud/cert/test.com.pem
 }
@@ -22,66 +22,82 @@ stop() {
     ps -ef | grep nginx | grep -v grep | awk '{print $2}' | xargs sudo kill -9
 }
 
+clone() {
+    repos=( base database gameserver lobbyserver stud nginx web sunwell client )
+    for i in ${repos[@]}; do
+        git clone https://github.com/farb3yonddriv3n/hm_$i.git
+    done
+}
+
+hearthstone_download() {
+    echo 'Downloading hearthmod HearthStone client'
+    wget -O hearthmod.zip https://www.dropbox.com/s/bmdiv3xn81tjwyg/hearthmod.zip?dl=0
+    unzip hearthmod.zip
+    # create 2 instances so user can play locally
+    rm -rf hs_client1 hs_client2
+    mv hearthmod hs_client1
+    cp -r hs_client1 hs_client2
+}
+
+hearthstone_install() {
+    if [ ! -d "hs_client1" ] || [ ! -d "hs_client2" ]; then
+        echo "Run 'heaarthstone_download first so both directories hs_client1 and hs_client2 are created"
+        exit 1
+    fi
+
+    if [ `find . -name "hearthmod"|wc -l` -lt 1 ]; then
+        echo "Compile hs_client first so 'hearthmod' executable is created"
+        exit 1
+    fi
+
+    d1="hs_client1/hearthmod_client/linux/"
+    d2="hs_client2/hearthmod_client/linux/"
+    rm -rf $d1
+    rm -rf $d2
+    mkdir -p $d1
+    mkdir -p $d2
+    cp -f `find . -name "hearthmod"` $d1
+    cp -f `find . -name "hearthmod"` $d2
+}
+
+couchbase_bucket_create() {
+    /opt/couchbase/bin/couchbase-cli bucket-create -c localhost:8091 -u $1 -p $2 --bucket=hbs --bucket-password=aci --bucket-type=couchbase --bucket-ramsize=200 --bucket-replica=1 --wait
+}
+
+couchbase_bucket_restore() {
+    /opt/couchbase/bin/cbrestore ./hm_database/hbs/ http://localhost:8091/ --bucket-source=hbs -u $1 -p $2
+}
+
+build() {
+    #if [ "$#" -eq 2 ]; then
+        cd ./hm_stud && make && rm -rf cert/test* && cd cert && sh gen_cert.sh && cd ../..
+        sudo rm -rf /usr/local/nginx/
+  	cd ./hm_nginx && sed "s@\/usr\/local\/web@$(pwd)\/..\/hm_web\/@" conf/hm_nginx.conf > conf/nginx.conf && ./configure && make && sudo make install && cd ..
+    #fi
+    make -C ./hm_gameserver
+    make -C ./hm_lobbyserver
+    cd ./hm_client/src && qmake hearthmod.pro && make && cd ../..
+    cd ./hm_sunwell/examples && npm install && cd ../..
+}
+
 case $1 in
     clone)
-        repos=( base database gameserver lobbyserver stud nginx web sunwell client )
-        for i in ${repos[@]}; do
-            git clone https://github.com/farb3yonddriv3n/hm_$i.git
-        done
+        clone
         ;;
     hearthstone_download)
-        echo 'Downloading hearthmod HearthStone client'
-        wget -O hearthmod.zip https://www.dropbox.com/s/bmdiv3xn81tjwyg/hearthmod.zip?dl=0
-        unzip hearthmod.zip
-        # create 2 instances so user can play locally
-        rm -rf hs_client1 hs_client2
-        mv hearthmod hs_client1
-        cp -r hs_client1 hs_client2
+        hearthstone_download
         ;;
     hearthstone_install)
-        if [ ! -d "hs_client1" ] || [ ! -d "hs_client2" ]; then
-            echo "Run 'heaarthstone_download first so both directories hs_client1 and hs_client2 are created"
-            exit 1
-        fi
-
-        if [ `find . -name "hearthmod"|wc -l` -lt 1 ]; then
-            echo "Compile hs_client first so 'hearthmod' executable is created"
-            exit 1
-        fi
-
-        d1="hs_client1/hearthmod_client/linux/"
-        d2="hs_client2/hearthmod_client/linux/"
-        rm -rf $d1
-        rm -rf $d2
-        mkdir -p $d1
-        mkdir -p $d2
-        cp -f `find . -name "hearthmod"` $d1
-        cp -f `find . -name "hearthmod"` $d2
+        hearthstone_install
         ;; 
     bucket_create)
-        if [ "$#" -ne 3 ]; then
-            echo "Usage: host_ctl.sh bucket_create username password"
-            exit 1
-        fi
-
-        /opt/couchbase/bin/couchbase-cli bucket-create -c localhost:8091 -u $2 -p $3 --bucket=hbs --bucket-password=aci --bucket-type=couchbase --bucket-ramsize=200 --bucket-replica=1 --wait
+        couchbase_bucket_create $2 $3
         ;;
     bucket_restore)
-        if [ "$#" -ne 3 ]; then
-            echo "Usage: host_ctl.sh bucket_restore username password"
-            exit 1
-        fi
-
-        /opt/couchbase/bin/cbrestore ./hm_database/ http://localhost:8091/ --bucket-source=hbs -u $2 -p $3
+        couchbase_bucket_restore $2 $3
         ;;
-    compile)
-        if [ "$#" -eq 2 ]; then
-            cd ./hm_stud && make && rm -rf cert/test* && cd cert && sh gen_cert.sh && cd ../..
-            sudo rm -rf /usr/local/nginx/
-            cd ./hm_nginx && sed "s@\/usr\/local\/web@$(pwd)/../hm_web/@" conf/hm_nginx.conf > conf/nginx.conf && ./configure && make && sudo make install && cd ../..
-        fi
-        make -C ./hm_gameserver
-        make -C ./hm_lobbyserver
+    build)
+        build
         ;;
     start)
         start
@@ -93,7 +109,33 @@ case $1 in
         stop
         start
         ;;
+    uninstalled)
+        # dependencies and couchbase
+        sudo apt-get -y update && sudo apt-get install -y libev-dev tar wget libevent-dev build-essential libnet-ifconfig-wrapper-perl cmake python-pip libjson-c-dev curl valgrind zlib1g-dev python-webpy qt5-default qt5-qmake libssl-dev spawn-fcgi python-flup libpcre3-dev npm nodejs-legacy libgif-dev
+        wget -O cb.deb http://packages.couchbase.com/releases/4.5.0/couchbase-server-enterprise_4.5.0-ubuntu14.04_amd64.deb
+        sudo dpkg -i cb.deb
+        git clone https://github.com/couchbase/libcouchbase.git
+        cd libcouchbase && cmake . && make && sudo make install && cd ..
+        wget http://packages.couchbase.com/clients/c/libcouchbase-2.5.8_ubuntu1404_amd64.tar && tar xvf *.tar && cd libcouchbase-2.5.8_ubuntu1404_amd64/ && sudo dpkg -i *.deb && cd ..
+        sudo pip install couchbase
+        # clone
+        clone
+        # hs download
+        hearthstone_download
+        # couchbase
+    	echo 'Starting couchbase server'
+        sudo service couchbase-server start
+        sleep 5
+        couchbase_bucket_create Administrator password
+        sleep 5
+        couchbase_bucket_restore Administrator password
+    	# build all
+    	build
+        # hs install
+        hearthstone_install
+        echo 'Installation finished'
+        ;;
     *)
-        echo "Usage: ctl.sh {clone|bucket_create|bucket_restore|compile|start|stop}" >&2
+        echo "Usage: ctl.sh {uninstalled|clone|bucket_create|bucket_restore|build|start|stop}" >&2
         exit 3
 esac
