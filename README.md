@@ -21,13 +21,28 @@ hearthmod is a software stack that allows you to modify game of HearthStone, inc
 [hm_web](https://github.com/farb3yonddriv3n/hm_web) - hearthmod web interface
 
 ## Guide
-1. Clone hearthmod software stack:
 
-```git clone https://github.com/hearthmod/hearthmod.git```
+Clone hearthmod software stack
 
-2. Run ```bash host_ctl_ubuntu.sh uninstalled``` which compiles and installs the entire hearthmod stack. Also, it doesn't check for you local couchbase, nginx or stud instances. If you don't want to mess them, consider using virtual environment or modify installation script. If you don't run ubuntu or debian, please consider installation script alteration that suits your distro and creating an upstream pull request.
+```sh
+git clone https://github.com/hearthmod/hearthmod.git
+```
 
-Once compiled, run ```bash host_ctl_ubuntu.sh start``` and you can play. Go to hearthmod/hs_client1/hearthmod_client/linux and hearthmod/hs_client2/hearthmod_client/linux. By running two instances of hearthstone you can play by yourself and develop or test stuff.
+Run 
+
+```sh
+cd hearthmod/
+bash host_ctl_ubuntu.sh uninstalled
+```
+
+which compiles and installs the entire hearthmod stack. Also, it doesn't check for you local couchbase, nginx or stud instances. If you don't want to mess them, consider using virtual environment or modify installation script. If you don't run ubuntu or debian, please consider installation script alteration that suits your distro and creating an upstream pull request.
+
+Once compiled, run ```bash host_ctl_ubuntu.sh start``` and you can play. Run
+
+```sh
+hearthmod/hs_client1/hearthmod_client/linux AND hearthmod/hs_client2/hearthmod_client/linux
+```
+By running two instances of hearthstone you can play by yourself and develop or test stuff.
 
 To create or modify cards, accounts, decks; go to http://localhost/ .
 
@@ -37,6 +52,7 @@ web server error log file:
 ```sh
 tail -f /usr/local/nginx/logs/error.log
 ```
+
 gameserver and lobbyserver log files:
 ```sh
 ./hearthmod/hm_log/*
