@@ -31,6 +31,7 @@ git clone https://github.com/hearthmod/hearthmod.git
 Run 
 
 ```sh
+cd hearthmod/
 bash host_ctl_ubuntu.sh uninstalled
 ```
 
