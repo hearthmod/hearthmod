@@ -1,16 +1,28 @@
 #!/bin/bash
 
-start() {
-    echo 'Starting hearthmod'
-    mkdir -p ./hm_log
-    valgrind --log-file=./hm_log/hm_gameserver_valgrind_$(date +%s) --trace-children=yes ./hm_gameserver/hm_gameserver --log=./hm_log/hm_gameserver_$(date +%s)
-    valgrind --log-file=./hm_log/hm_lobbyserver_valgrind_$(date +%s) --trace-children=yes ./hm_lobbyserver/hm_lobbyserver --log=./hm_log/hm_lobbyserver_$(date +%s)
+repos=( base database gameserver lobbyserver stud nginx web sunwell client )
+
+start_web() {
     # fcgi
     spawn-fcgi -d `pwd`/./hm_web/ -f `pwd`/./hm_web/app.py -a 127.0.0.1 -p 9002
     # nginx
     sudo ./hm_nginx/objs/nginx
+}
+
+start() {
+    for i in ${repos[@]}; do
+        if [ ! -d "hm_${i}" ]; then
+            echo "Directory hm_${i} doesn't exist, do uninstalled() first"
+            exit 1
+        fi
+    done
+    echo 'Starting hearthmod'
+    mkdir -p ./hm_log
+    valgrind --log-file=./hm_log/hm_gameserver_valgrind_$(date +%s) --trace-children=yes ./hm_gameserver/hm_gameserver --log=./hm_log/hm_gameserver_$(date +%s)
+    valgrind --log-file=./hm_log/hm_lobbyserver_valgrind_$(date +%s) --trace-children=yes ./hm_lobbyserver/hm_lobbyserver --log=./hm_log/hm_lobbyserver_$(date +%s)
     # stud
     ./hm_stud/stud ./hm_stud/cert/test.com.pem
+    start_web
 }
 
 stop() {
@@ -23,7 +35,6 @@ stop() {
 }
 
 clone() {
-    repos=( base database gameserver lobbyserver stud nginx web sunwell client )
     for i in ${repos[@]}; do
         git clone https://github.com/farb3yonddriv3n/hm_$i.git
     done
@@ -101,6 +112,9 @@ case $1 in
         ;;
     start)
         start
+        ;;
+    start_web)
+        start_web
         ;;
     stop)
         stop
