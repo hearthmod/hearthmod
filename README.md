@@ -37,11 +37,21 @@ bash host_ctl_ubuntu.sh uninstalled
 
 which compiles and installs the entire hearthmod stack. Also, it doesn't check for you local couchbase, nginx or stud instances. If you don't want to mess them, consider using virtual environment or modify installation script. If you don't run ubuntu or debian, please consider installation script alteration that suits your distro and creating an upstream pull request.
 
-Once compiled, run ```bash host_ctl_ubuntu.sh start``` and you can play. Run
-
+Once compiled, run:
 ```sh
-hearthmod/hs_client1/hearthmod_client/linux AND hearthmod/hs_client2/hearthmod_client/linux
+bash host_ctl_ubuntu.sh start
+``` 
+and you can play. 
+
+Then run clients:
+```sh
+hearthmod/hs_client1/hearthmod_client/linux
 ```
+and
+```sh
+hearthmod/hs_client1/hearthmod_client/linux
+```
+
 By running two instances of hearthstone you can play by yourself and develop or test stuff.
 
 To create or modify cards, accounts, decks; go to http://localhost/ .
