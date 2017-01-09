@@ -10,12 +10,12 @@ start_web() {
 }
 
 start() {
-    for i in ${repos[@]}; do
-        if [ ! -d "hm_${i}" ]; then
-            echo "Directory hm_${i} doesn't exist, do uninstalled() first"
-            exit 1
-        fi
-    done
+    #for i in ${repos[@]}; do
+    #    if [ ! -d "hm_${i}" ]; then
+    #        echo "Directory hm_${i} doesn't exist, do uninstalled() first"
+    #        exit 1
+    #    fi
+    #done
     echo 'Starting hearthmod'
     mkdir -p ./hm_log
     valgrind --log-file=./hm_log/hm_gameserver_valgrind_$(date +%s) --trace-children=yes ./hm_gameserver/hm_gameserver --log=./hm_log/hm_gameserver_$(date +%s)
@@ -42,10 +42,12 @@ clone() {
 
 hearthstone_download() {
     echo 'Downloading hearthmod HearthStone client'
-    wget -O hearthmod.zip https://www.dropbox.com/s/bmdiv3xn81tjwyg/hearthmod.zip?dl=0
-    unzip hearthmod.zip
+    if [ ! -f "hearthmod.zip" ]; then
+        wget -O hearthmod.zip https://www.dropbox.com/s/bmdiv3xn81tjwyg/hearthmod.zip?dl=0
+    fi
     # create 2 instances so user can play locally
-    rm -rf hs_client1 hs_client2
+    rm -rf hs_client1/ hs_client2/ hearthmod/
+    unzip hearthmod.zip
     mv hearthmod hs_client1
     cp -r hs_client1 hs_client2
 }
@@ -124,12 +126,16 @@ case $1 in
         start
         ;;
     uninstalled)
+        # remove left overs
+        rm -rf libcouchbase/
         # dependencies and couchbase
         sudo apt-get -y update && sudo apt-get install -y libev-dev tar wget libevent-dev build-essential libnet-ifconfig-wrapper-perl cmake python-pip libjson-c-dev curl valgrind zlib1g-dev python-webpy qt5-default qt5-qmake libssl-dev spawn-fcgi python-flup libpcre3-dev npm nodejs-legacy libgif-dev
-        wget -O cb.deb http://packages.couchbase.com/releases/4.5.0/couchbase-server-enterprise_4.5.0-ubuntu14.04_amd64.deb
+        if [ ! -f "cb.deb" ]; then
+            wget -O cb.deb http://packages.couchbase.com/releases/4.5.0/couchbase-server-enterprise_4.5.0-ubuntu14.04_amd64.deb
+        fi
         sudo dpkg -i cb.deb
         git clone https://github.com/couchbase/libcouchbase.git
-        cd libcouchbase && cmake . && make && sudo make install && cd ..
+        cd libcouchbase && git checkout 2.7.0 && cmake . && make && sudo make install && cd ..
         wget http://packages.couchbase.com/clients/c/libcouchbase-2.5.8_ubuntu1404_amd64.tar && tar xvf *.tar && cd libcouchbase-2.5.8_ubuntu1404_amd64/ && sudo dpkg -i *.deb && cd ..
         sudo pip install couchbase
         # clone
