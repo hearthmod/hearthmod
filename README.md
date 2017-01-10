@@ -39,7 +39,7 @@ which compiles and installs the entire hearthmod stack. Also, it doesn't check f
 
 Once compiled, run:
 ```sh
-bash host_ctl_ubuntu.sh start
+bash host_ctl_ubuntu.sh start <ip>
 ``` 
 and you can play. 
 
