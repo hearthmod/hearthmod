@@ -16,10 +16,14 @@ start() {
     #        exit 1
     #    fi
     #done
+    if [ "$#" -ne 1 ]; then
+        echo 'Please, specify IP of gameserver' $#
+        exit 1
+    fi
     echo 'Starting hearthmod'
     mkdir -p ./hm_log
     valgrind --log-file=./hm_log/hm_gameserver_valgrind_$(date +%s) --trace-children=yes ./hm_gameserver/hm_gameserver --log=./hm_log/hm_gameserver_$(date +%s)
-    valgrind --log-file=./hm_log/hm_lobbyserver_valgrind_$(date +%s) --trace-children=yes ./hm_lobbyserver/hm_lobbyserver --log=./hm_log/hm_lobbyserver_$(date +%s)
+    valgrind --log-file=./hm_log/hm_lobbyserver_valgrind_$(date +%s) --trace-children=yes ./hm_lobbyserver/hm_lobbyserver --gameserver=$1 --log=./hm_log/hm_lobbyserver_$(date +%s)
     # stud
     ./hm_stud/stud ./hm_stud/cert/test.com.pem
     start_web
@@ -113,7 +117,7 @@ case $1 in
         build
         ;;
     start)
-        start
+        start $2
         ;;
     start_web)
         start_web
