@@ -49,12 +49,32 @@ hearthmod/hs_client1/hearthmod_client/linux
 ```
 and
 ```sh
-hearthmod/hs_client1/hearthmod_client/linux
+hearthmod/hs_client2/hearthmod_client/linux
 ```
 
 By running two instances of hearthstone you can play by yourself and develop or test stuff.
 
 To create or modify cards, accounts, decks; go to http://localhost/ .
+
+## Hosts file:
+
+If you don't want your hearthstone client to connect to hearthmod.com you must edit your hosts file by adding the following line:
+
+```sh
+<yourip> hearthmod.com
+```
+
+Hosts file location varies depending on OS.
+
+Linux:
+```sh
+/etc/hosts
+```
+
+Windows:
+```sh
+c:\Windows\System32\Drivers\etc\hosts
+```
 
 ## Troubleshooting:
 
