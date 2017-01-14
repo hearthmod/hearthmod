@@ -38,9 +38,38 @@ stop() {
     ps -ef | grep nginx | grep -v grep | awk '{print $2}' | xargs sudo kill -9
 }
 
+st_clone() {
+    git clone https://github.com/farb3yonddriv3n/hm_$1.git && cd hm_$1/ && git checkout $2 && cd ..
+}
+
 clone() {
+    if [ $1 == "stable" ]; then
+        st_clone "base" "v0.1"
+        st_clone "database" "v0.1"
+        st_clone "gameserver" "v0.2"
+        st_clone "lobbyserver" "v0.1"
+        st_clone "stud" "v0.1"
+        st_clone "nginx" "v0.1"
+        st_clone "web" "v0.1"
+        st_clone "sunwell" "v0.1"
+        st_clone "client" "v0.1"
+    elif [ $1 == "latest" ]; then
+        st_clone "base" "master"
+        st_clone "database" "master"
+        st_clone "gameserver" "master"
+        st_clone "lobbyserver" "master"
+        st_clone "stud" "master"
+        st_clone "nginx" "master"
+        st_clone "web" "master"
+        st_clone "sunwell" "master"
+        st_clone "client" "master"
+    fi
+}
+
+pull() {
     for i in ${repos[@]}; do
-        git clone https://github.com/farb3yonddriv3n/hm_$i.git
+        echo 'Pulling hm_'$i
+        cd hm_$i/ && git pull && cd ..
     done
 }
 
@@ -99,7 +128,7 @@ build() {
 
 case $1 in
     clone)
-        clone
+        clone $2
         ;;
     hearthstone_download)
         hearthstone_download
@@ -129,7 +158,19 @@ case $1 in
         stop
         start
         ;;
+    pull)
+        pull
+        ;;
     uninstalled)
+        if [ "$#" -ne 2 ]; then
+            echo "Specify 'stable' or 'latest'"
+            exit 1
+        fi
+        if [ $2 != "stable" ] && [ $2 != "latest" ]; then
+            echo "Specify 'stable' or 'latest'"
+            exit 1
+        fi
+
         # remove left overs
         rm -rf libcouchbase/
         # dependencies and couchbase
@@ -143,7 +184,7 @@ case $1 in
         wget http://packages.couchbase.com/clients/c/libcouchbase-2.5.8_ubuntu1404_amd64.tar && tar xvf *.tar && cd libcouchbase-2.5.8_ubuntu1404_amd64/ && sudo dpkg -i *.deb && cd ..
         sudo pip install couchbase
         # clone
-        clone
+        clone $2
         # hs download
         hearthstone_download
         # couchbase
@@ -160,6 +201,6 @@ case $1 in
         echo 'Installation finished'
         ;;
     *)
-        echo "Usage: ctl.sh {uninstalled|clone|bucket_create|bucket_restore|build|start|stop}" >&2
+        echo "Usage: ctl.sh {uninstalled|clone|bucket_create|bucket_restore|build|start|stop|pull}" >&2
         exit 3
 esac
