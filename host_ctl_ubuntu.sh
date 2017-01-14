@@ -43,27 +43,15 @@ st_clone() {
 }
 
 clone() {
-    if [ $1 == "stable" ]; then
-        st_clone "base" "v0.1"
-        st_clone "database" "v0.1"
-        st_clone "gameserver" "v0.2"
-        st_clone "lobbyserver" "v0.1"
-        st_clone "stud" "v0.1"
-        st_clone "nginx" "v0.1"
-        st_clone "web" "v0.1"
-        st_clone "sunwell" "v0.1"
-        st_clone "client" "v0.1"
-    elif [ $1 == "latest" ]; then
-        st_clone "base" "master"
-        st_clone "database" "master"
-        st_clone "gameserver" "master"
-        st_clone "lobbyserver" "master"
-        st_clone "stud" "master"
-        st_clone "nginx" "master"
-        st_clone "web" "master"
-        st_clone "sunwell" "master"
-        st_clone "client" "master"
-    fi
+    st_clone "base" "v0.1"
+    st_clone "database" "v0.1"
+    st_clone "gameserver" "v0.2"
+    st_clone "lobbyserver" "v0.1"
+    st_clone "stud" "v0.1"
+    st_clone "nginx" "v0.1"
+    st_clone "web" "v0.1"
+    st_clone "sunwell" "v0.1"
+    st_clone "client" "v0.1"
 }
 
 pull() {
@@ -128,7 +116,7 @@ build() {
 
 case $1 in
     clone)
-        clone $2
+        clone
         ;;
     hearthstone_download)
         hearthstone_download
@@ -156,21 +144,12 @@ case $1 in
         ;;
     restart)
         stop
-        start
+        start $2
         ;;
     pull)
         pull
         ;;
     uninstalled)
-        if [ "$#" -ne 2 ]; then
-            echo "Specify 'stable' or 'latest'"
-            exit 1
-        fi
-        if [ $2 != "stable" ] && [ $2 != "latest" ]; then
-            echo "Specify 'stable' or 'latest'"
-            exit 1
-        fi
-
         # remove left overs
         rm -rf libcouchbase/
         # dependencies and couchbase
@@ -184,7 +163,7 @@ case $1 in
         wget http://packages.couchbase.com/clients/c/libcouchbase-2.5.8_ubuntu1404_amd64.tar && tar xvf *.tar && cd libcouchbase-2.5.8_ubuntu1404_amd64/ && sudo dpkg -i *.deb && cd ..
         sudo pip install couchbase
         # clone
-        clone $2
+        clone
         # hs download
         hearthstone_download
         # couchbase

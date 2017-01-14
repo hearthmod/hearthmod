@@ -32,7 +32,7 @@ Run
 
 ```sh
 cd hearthmod/
-bash host_ctl_ubuntu.sh uninstalled [stable|latest]
+bash host_ctl_ubuntu.sh uninstalled
 ```
 
 which compiles and installs the entire hearthmod stack. Also, it doesn't check for you local couchbase, nginx or stud instances. If you don't want to mess them, consider using virtual environment or modify installation script. If you don't run ubuntu or debian, please consider installation script alteration that suits your distro and creating an upstream pull request.
