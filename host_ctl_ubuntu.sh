@@ -150,15 +150,6 @@ case $1 in
         pull
         ;;
     uninstalled)
-        if [ "$#" -ne 2 ]; then
-            echo "Specify 'stable' or 'latest'"
-            exit 1
-        fi
-        if [ $2 != "stable" ] && [ $2 != "latest" ]; then
-            echo "Specify 'stable' or 'latest'"
-            exit 1
-        fi
-
         # remove left overs
         rm -rf libcouchbase/
         # dependencies and couchbase
