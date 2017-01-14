@@ -16,14 +16,14 @@ start() {
     #        exit 1
     #    fi
     #done
-    if [ "$#" -ne 1 ]; then
-        echo 'Please, specify IP of gameserver' $#
+    if [ "$#" -ne 2 ]; then
+        echo 'Please, specify IP and port of gameserver'
         exit 1
     fi
     echo 'Starting hearthmod'
     mkdir -p ./hm_log
     valgrind --log-file=./hm_log/hm_gameserver_valgrind_$(date +%s) --trace-children=yes ./hm_gameserver/hm_gameserver --log=./hm_log/hm_gameserver_$(date +%s)
-    valgrind --log-file=./hm_log/hm_lobbyserver_valgrind_$(date +%s) --trace-children=yes ./hm_lobbyserver/hm_lobbyserver --gameserver=$1 --log=./hm_log/hm_lobbyserver_$(date +%s)
+    valgrind --log-file=./hm_log/hm_lobbyserver_valgrind_$(date +%s) --trace-children=yes ./hm_lobbyserver/hm_lobbyserver --gameserver=$1 --gameserver_port=$2 --log=./hm_log/hm_lobbyserver_$(date +%s)
     # stud
     ./hm_stud/stud ./hm_stud/cert/test.com.pem
     start_web
@@ -43,27 +43,15 @@ st_clone() {
 }
 
 clone() {
-    if [ $1 == "stable" ]; then
-        st_clone "base" "v0.1"
-        st_clone "database" "v0.1"
-        st_clone "gameserver" "v0.2"
-        st_clone "lobbyserver" "v0.1"
-        st_clone "stud" "v0.1"
-        st_clone "nginx" "v0.1"
-        st_clone "web" "v0.1"
-        st_clone "sunwell" "v0.1"
-        st_clone "client" "v0.1"
-    elif [ $1 == "latest" ]; then
-        st_clone "base" "master"
-        st_clone "database" "master"
-        st_clone "gameserver" "master"
-        st_clone "lobbyserver" "master"
-        st_clone "stud" "master"
-        st_clone "nginx" "master"
-        st_clone "web" "master"
-        st_clone "sunwell" "master"
-        st_clone "client" "master"
-    fi
+    st_clone "base" "master"
+    st_clone "database" "master"
+    st_clone "gameserver" "master"
+    st_clone "lobbyserver" "master"
+    st_clone "stud" "master"
+    st_clone "nginx" "master"
+    st_clone "web" "master"
+    st_clone "sunwell" "master"
+    st_clone "client" "master"
 }
 
 pull() {
@@ -128,7 +116,7 @@ build() {
 
 case $1 in
     clone)
-        clone $2
+        clone
         ;;
     hearthstone_download)
         hearthstone_download
@@ -146,7 +134,7 @@ case $1 in
         build
         ;;
     start)
-        start $2
+        start $2 $3
         ;;
     start_web)
         start_web
@@ -156,7 +144,7 @@ case $1 in
         ;;
     restart)
         stop
-        start
+        start $2 $3
         ;;
     pull)
         pull
@@ -184,7 +172,7 @@ case $1 in
         wget http://packages.couchbase.com/clients/c/libcouchbase-2.5.8_ubuntu1404_amd64.tar && tar xvf *.tar && cd libcouchbase-2.5.8_ubuntu1404_amd64/ && sudo dpkg -i *.deb && cd ..
         sudo pip install couchbase
         # clone
-        clone $2
+        clone
         # hs download
         hearthstone_download
         # couchbase
