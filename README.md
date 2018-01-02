@@ -76,6 +76,11 @@ Windows:
 c:\Windows\System32\Drivers\etc\hosts
 ```
 
+## Video Installation Guide:
+
+
+[Full Installation Guide](https://www.youtube.com/watch?v=gq7h9zRmrHs)
+
 ## Troubleshooting:
 
 web server error log file:
