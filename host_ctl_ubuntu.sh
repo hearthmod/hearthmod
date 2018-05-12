@@ -159,9 +159,8 @@ case $1 in
         fi
         sudo dpkg -i cb.deb
         git clone https://github.com/couchbase/libcouchbase.git
-        cd libcouchbase && git checkout 2.7.0 && cmake . && make && sudo make install && cd ..
-        wget http://packages.couchbase.com/clients/c/libcouchbase-2.5.8_ubuntu1404_amd64.tar && tar xvf *.tar && cd libcouchbase-2.5.8_ubuntu1404_amd64/ && sudo dpkg -i *.deb && cd ..
-        sudo pip install couchbase==2.2.4
+        cd libcouchbase && git checkout 2.8.7 && cmake . && make && sudo make install && cd ..
+        sudo pip install couchbase
         # clone
         clone
         # hs download
