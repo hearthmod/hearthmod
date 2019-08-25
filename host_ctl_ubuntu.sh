@@ -47,8 +47,8 @@ clone() {
     st_clone "database" "v0.1"
     st_clone "gameserver" "v0.2"
     st_clone "lobbyserver" "v0.1"
-    st_clone "stud" "v0.1"
-    st_clone "nginx" "v0.1"
+    st_clone "stud" "master"
+    st_clone "nginx" "master"
     st_clone "web" "v0.1"
     st_clone "sunwell" "v0.1"
     st_clone "client" "v0.1"
@@ -153,13 +153,13 @@ case $1 in
         # remove left overs
         rm -rf libcouchbase/
         # dependencies and couchbase
-        sudo apt-get -y update && sudo apt-get install -y libev-dev tar wget libevent-dev build-essential libnet-ifconfig-wrapper-perl cmake python-pip libjson-c-dev curl valgrind zlib1g-dev python-webpy qt5-default qt5-qmake libssl-dev spawn-fcgi python-flup libpcre3-dev npm nodejs-legacy libgif-dev wine
+	sudo apt-get -y update && sudo apt-get install -y libev-dev tar wget libevent-dev build-essential libnet-ifconfig-wrapper-perl cmake python-pip libjson-c-dev curl valgrind zlib1g-dev python-webpy qt5-default qt5-qmake spawn-fcgi python-flup libpcre3-dev npm node-gyp nodejs libgif-dev nodejs-dev libssl1.0-dev unzip wine
         if [ ! -f "cb.deb" ]; then
             wget -O cb.deb http://packages.couchbase.com/releases/4.5.0/couchbase-server-enterprise_4.5.0-ubuntu14.04_amd64.deb
         fi
         sudo dpkg -i cb.deb
         git clone https://github.com/couchbase/libcouchbase.git
-        cd libcouchbase && git checkout 2.8.7 && cmake . && make && sudo make install && cd ..
+        cd libcouchbase && git checkout 2.9.0 && cmake . && make && sudo make install && cd ..
         sudo pip install couchbase
         # clone
         clone
