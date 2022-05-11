@@ -1,5 +1,5 @@
 # hearthmod
-hearthmod is a software stack that allows you to modify game of HearthStone, including mechanics, cards, etc. If you intend to run it, it's recommended that you run a linux OS, preferably debian or ubuntu distribution.
+hearthmod is a software stack that allows you to modify game of HearthStone, including mechanics, cards, etc. If you intend to run it, it's recommended that you run a linux OS, preferably debian or ubuntu distribution (tested on ubuntu-16.04.7-desktop-amd64).
 
 ## Components
 [hm_lobbyserver](https://github.com/farb3yonddriv3n/hm_lobbyserver) - hearthmod lobby server

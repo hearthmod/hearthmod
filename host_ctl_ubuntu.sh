@@ -153,14 +153,15 @@ case $1 in
         # remove left overs
         rm -rf libcouchbase/
         # dependencies and couchbase
-        sudo apt-get -y update && sudo apt-get install -y libev-dev tar wget libevent-dev build-essential libnet-ifconfig-wrapper-perl cmake python-pip libjson-c-dev curl valgrind zlib1g-dev python-webpy qt5-default qt5-qmake spawn-fcgi python-flup libpcre3-dev npm node-gyp nodejs libgif-dev nodejs-dev libssl1.0-dev unzip wine-stable
+        sudo apt-get -y update && sudo apt-get install -y libev-dev tar wget libevent-dev build-essential libnet-ifconfig-wrapper-perl cmake python-pip libjson-c-dev curl valgrind zlib1g-dev python-webpy qt5-default qt5-qmake spawn-fcgi python-flup libpcre3-dev npm node-gyp nodejs libgif-dev nodejs-dev unzip libssl-dev vim wine
+
         if [ ! -f "cb.deb" ]; then
             wget -O cb.deb http://packages.couchbase.com/releases/4.5.0/couchbase-server-enterprise_4.5.0-ubuntu14.04_amd64.deb
         fi
         sudo dpkg -i cb.deb
         git clone https://github.com/couchbase/libcouchbase.git
         cd libcouchbase && git checkout 2.9.0 && cmake . && make && sudo make install && cd ..
-        sudo pip install couchbase
+        sudo pip install couchbase==2.2.4
         # clone
         clone
         # hs download
