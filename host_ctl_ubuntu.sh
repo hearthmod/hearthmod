@@ -22,8 +22,8 @@ start() {
     fi
     echo 'Starting hearthmod'
     mkdir -p ./hm_log
-    valgrind --log-file=./hm_log/hm_gameserver_valgrind_$(date +%s) --trace-children=yes ./hm_gameserver/hm_gameserver --log=./hm_log/hm_gameserver_$(date +%s)
-    valgrind --log-file=./hm_log/hm_lobbyserver_valgrind_$(date +%s) --trace-children=yes ./hm_lobbyserver/hm_lobbyserver --gameserver=$1 --log=./hm_log/hm_lobbyserver_$(date +%s)
+    ./hm_gameserver/hm_gameserver --log=./hm_log/hm_gameserver_$(date +%s)
+    ./hm_lobbyserver/hm_lobbyserver --gameserver=$1 --log=./hm_log/hm_lobbyserver_$(date +%s)
     # stud
     ./hm_stud/stud ./hm_stud/cert/test.com.pem
     start_web
@@ -160,7 +160,7 @@ case $1 in
         fi
         sudo dpkg -i cb.deb
         git clone https://github.com/couchbase/libcouchbase.git
-        cd libcouchbase && git checkout 2.9.0 && cmake . && make && sudo make install && cd ..
+        cd libcouchbase && git checkout 2.9.0 && cmake . && make && sudo make install && sudo ldconfig && cd ..
         sudo pip install couchbase==2.2.4
         # clone
         clone
