@@ -1,0 +1,135 @@
+# Requires Compose v2 ("docker compose", with a space). The legacy v1 tool
+# ("docker-compose", hyphen) is EOL and does not support the top-level `name:`
+# key nor the depends_on conditions (service_healthy / service_completed_
+# successfully) this stack relies on for init ordering.
+# Project name comes from COMPOSE_PROJECT_NAME (set in .env) instead of `name:`.
+
+# Couchbase host injected into every service that talks to the DB. The native
+# servers and the web app had "localhost" hardcoded; the build steps patch them
+# to honour $HM_COUCHBASE_HOST (see docker/builder/patch-couchbase-host.sh).
+x-cb-host: &cb_host
+  HM_COUCHBASE_HOST: couchbase
+
+networks:
+  hearthmod:
+    driver: bridge
+
+volumes:
+  couchbase-data:
+
+services:
+  # --- datastore -----------------------------------------------------------
+  couchbase:
+    image: couchbase:enterprise-4.5.0
+    container_name: hm-couchbase
+    ports:
+      - "8091:8091"          # admin UI / REST (http://localhost:8091)
+    volumes:
+      - couchbase-data:/opt/couchbase/var
+    networks: [hearthmod]
+    ulimits:
+      nofile: 40960
+    # TCP check on the REST port — the image has no curl. The full
+    # readiness wait (GET /pools) lives in couchbase-init's init.sh.
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/127.0.0.1/8091"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  # one-shot: cluster-init + create bucket "hbs" + restore the snapshot
+  couchbase-init:
+    build:
+      context: .
+      dockerfile: docker/couchbase-init/Dockerfile
+    container_name: hm-couchbase-init
+    environment:
+      COUCHBASE_HOST: couchbase
+      COUCHBASE_ADMIN_USER: ${COUCHBASE_ADMIN_USER:-Administrator}
+      COUCHBASE_ADMIN_PASSWORD: ${COUCHBASE_ADMIN_PASSWORD:-password}
+    depends_on:
+      couchbase:
+        condition: service_healthy
+    networks: [hearthmod]
+    restart: "no"
+
+  # --- native servers (shared builder image, one container each) -----------
+  gameserver:
+    build:
+      context: .
+      dockerfile: docker/builder/Dockerfile
+    image: hearthmod/native:local
+    container_name: hm-gameserver
+    entrypoint: ["/usr/local/bin/gameserver-entrypoint.sh"]
+    environment:
+      <<: *cb_host
+    ports:
+      - "3724:3724"          # client connects here after the lobby handoff
+    depends_on:
+      couchbase-init:
+        condition: service_completed_successfully
+    networks: [hearthmod]
+    restart: unless-stopped
+
+  lobbyserver:
+    build:
+      context: .
+      dockerfile: docker/builder/Dockerfile
+    image: hearthmod/native:local
+    container_name: hm-lobbyserver
+    entrypoint: ["/usr/local/bin/lobbyserver-entrypoint.sh"]
+    environment:
+      <<: *cb_host
+      # Address relayed TO the client — must be reachable from the player's
+      # machine (the Docker host's IP), not the internal service name.
+      GAMESERVER_PUBLIC_IP: ${GAMESERVER_PUBLIC_IP:-127.0.0.1}
+    depends_on:
+      couchbase-init:
+        condition: service_completed_successfully
+    networks: [hearthmod]
+    restart: unless-stopped
+
+  stud:
+    build:
+      context: .
+      dockerfile: docker/builder/Dockerfile
+    image: hearthmod/native:local
+    container_name: hm-stud
+    entrypoint: ["/usr/local/bin/stud-entrypoint.sh"]
+    environment:
+      LOBBY_HOST: lobbyserver
+      LOBBY_PORT: "45678"
+      STUD_FRONT_PORT: "1119"
+    ports:
+      - "1119:1119"          # TLS entrypoint the client dials (hearthmod.com:1119)
+    depends_on: [lobbyserver]
+    networks: [hearthmod]
+    restart: unless-stopped
+
+  # --- web UI (nginx + web.py via spawn-fcgi) ------------------------------
+  web:
+    build:
+      context: .
+      dockerfile: docker/web/Dockerfile
+    container_name: hm-web
+    environment:
+      <<: *cb_host
+    ports:
+      - "80:80"              # http://localhost/  (cards, accounts, decks)
+    depends_on:
+      couchbase-init:
+        condition: service_completed_successfully
+    networks: [hearthmod]
+    restart: unless-stopped
+
+  # --- card-image renderer (node-sunwell) ----------------------------------
+  sunwell:
+    build:
+      context: .
+      dockerfile: docker/sunwell/Dockerfile
+    container_name: hm-sunwell
+    ports:
+      - "8081:8081"
+    networks: [hearthmod]
+    restart: unless-stopped
