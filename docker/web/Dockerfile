@@ -49,6 +49,12 @@ RUN perl -0777 -i -pe 's/(#signin"\)\.click\(function\(\)\s*\{.*?jQuery\.ajax\(\
  && grep -q 'url: "/signin"' hm_web/templates/base.html \
  && grep -q 'url: "/signup"' hm_web/templates/base.html
 
+# wire card rendering to the sunwell container: write the carddata to the shared
+# /shared volume and trigger sunwell by service name instead of localhost.
+RUN sed -i 's@"../hm_sunwell/examples/carddata"@"/shared/carddata"@' hm_web/generate.py \
+ && sed -i 's@urllib2.urlopen("http://localhost:8081/")@urllib2.urlopen(os.environ.get("SUNWELL_URL","http://sunwell:8081/"))@' hm_web/generate.py \
+ && grep -q "/shared/carddata" hm_web/generate.py
+
 COPY docker/web/entrypoint.sh /usr/local/bin/web-entrypoint.sh
 RUN chmod +x /usr/local/bin/web-entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/web-entrypoint.sh"]

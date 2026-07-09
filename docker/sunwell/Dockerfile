@@ -18,8 +18,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /opt/hm_sunwell
 RUN git clone -b v0.1 https://github.com/farb3yonddriv3n/hm_sunwell.git .
 
-# rebuild native deps (canvas) against this image's libraries
-RUN npm install --unsafe-perm
+# Decouple from the old sibling-directory layout (server.js assumed hm_web and
+# the carddata file were siblings on one host):
+#  - read the card JSON from the shared /shared/carddata
+#  - write the rendered image to /opt/hm_web/static/custom (shared with web)
+#  - don't crash the process on a missing carddata / render error (it used
+#    `throw err` in an async callback and an undefined `next`)
+RUN sed -i "s@process.cwd() + '/examples/carddata'@'/shared/carddata'@" examples/server.js \
+ && sed -i "s@process.cwd() + '/../hm_web/static/custom/'@'/opt/hm_web/static/custom/'@" examples/server.js \
+ && perl -0777 -i -pe "s/if \(err\) throw err;/if (err) { res.writeHead(500); res.end('no carddata queued'); return; }/" examples/server.js \
+ && perl -0777 -i -pe "s/if \(err\) next\(err\);/if (err) { console.log(err); res.writeHead(500); res.end('render error'); return; }/" examples/server.js \
+ && grep -q "/shared/carddata" examples/server.js
+
+# The repo vendors a 2016 node_modules whose prebuilt canvas binary links the
+# old libpng12 (absent on this base) — "libpng12.so.0: cannot open shared
+# object file". Remove it so canvas is recompiled against this image's libpng.
+RUN rm -rf node_modules \
+ && npm install --unsafe-perm
 
 ENV PORT=8081
 EXPOSE 8081

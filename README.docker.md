@@ -93,6 +93,13 @@ Other notes:
 - `lobbyserver --gameserver=` is set from `GAMESERVER_PUBLIC_IP`, because that
   address is relayed to the client and must be reachable from the player's box —
   not the internal `gameserver` service name.
+- **Card rendering (web ↔ sunwell)** was filesystem-coupled across sibling dirs
+  in the monolith. It's rewired over two shared volumes: web writes the card
+  JSON to `hm-carddata` (`/shared/carddata`) and triggers sunwell via
+  `$SUNWELL_URL` (`http://sunwell:8081/`); sunwell renders and writes the image
+  to `hm-custom` (`/opt/hm_web/static/custom/<id>.jpg`), which web's nginx serves
+  at `/static/custom/`. server.js was also hardened to return 500 instead of
+  crashing on a missing/invalid carddata.
 
 ## Known risks / first-run gotchas
 
