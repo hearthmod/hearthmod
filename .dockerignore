@@ -1,0 +1,10 @@
+.git
+test
+hs_client1
+hs_client2
+hm_log
+*.md
+host_ctl_ubuntu.sh
+docker_ctl.sh
+/Dockerfile
+.env
